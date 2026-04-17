@@ -39,7 +39,10 @@ class CartService {
     return data.map((item) => CartItem.fromMap(item)).toList();
   }
 
-  Future<void> addToCart({required int productId, required int quantity}) async {
+  Future<void> addToCart({
+    required int productId,
+    required int quantity,
+  }) async {
     final cartId = await _ensureCartId();
     final product = await supabase
         .from('products')
@@ -69,7 +72,8 @@ class CartService {
     final currentQty = existing['quantity'] as int;
     await supabase
         .from('cart_items')
-        .update({'quantity': currentQty + quantity}).eq('id', existing['id'] as int);
+        .update({'quantity': currentQty + quantity})
+        .eq('id', existing['id'] as int);
   }
 
   Future<void> updateQuantity({
@@ -83,7 +87,8 @@ class CartService {
 
     await supabase
         .from('cart_items')
-        .update({'quantity': quantity}).eq('id', cartItemId);
+        .update({'quantity': quantity})
+        .eq('id', cartItemId);
   }
 
   Future<void> removeItem(int cartItemId) async {

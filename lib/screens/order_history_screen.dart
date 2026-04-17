@@ -28,22 +28,22 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.orders.isEmpty
-              ? const Center(child: Text('No orders yet'))
-              : ListView.builder(
-                  itemCount: provider.orders.length,
-                  itemBuilder: (context, index) {
-                    final order = provider.orders[index];
-                    return Card(
-                      margin: const EdgeInsets.all(8),
-                      child: ListTile(
-                        title: Text('Order #${order.id} - ${order.status}'),
-                        subtitle: Text(
-                          '${order.items.length} items | Total: \$${order.totalAmount.toStringAsFixed(2)}',
-                        ),
-                      ),
-                    );
-                  },
-                ),
+          ? const Center(child: Text('No orders yet'))
+          : ListView.builder(
+              itemCount: provider.orders.length,
+              itemBuilder: (context, index) {
+                final order = provider.orders[index];
+                return Card(
+                  margin: const EdgeInsets.all(8),
+                  child: ListTile(
+                    title: Text('Order #${order.id} - ${order.status}'),
+                    subtitle: Text(
+                      '${order.items.length} items | Total: \$${order.totalAmount.toStringAsFixed(2)}',
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

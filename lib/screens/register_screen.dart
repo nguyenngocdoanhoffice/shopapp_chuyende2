@@ -42,7 +42,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registered. Please confirm email then login.')),
+        const SnackBar(
+          content: Text('Registered. Please confirm email then login.'),
+        ),
       );
       Navigator.of(context).pop();
       return;

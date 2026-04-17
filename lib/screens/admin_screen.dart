@@ -43,7 +43,9 @@ class _AdminScreenState extends State<AdminScreen>
 
     final nameCtrl = TextEditingController(text: product?.name ?? '');
     final descCtrl = TextEditingController(text: product?.description ?? '');
-    final categoryCtrl = TextEditingController(text: product?.category ?? 'Phone');
+    final categoryCtrl = TextEditingController(
+      text: product?.category ?? 'Phone',
+    );
     final priceCtrl = TextEditingController(
       text: product == null ? '' : product.price.toString(),
     );
@@ -89,7 +91,9 @@ class _AdminScreenState extends State<AdminScreen>
                 ElevatedButton(
                   onPressed: () async {
                     final picker = ImagePicker();
-                    final file = await picker.pickImage(source: ImageSource.gallery);
+                    final file = await picker.pickImage(
+                      source: ImageSource.gallery,
+                    );
                     if (file == null) {
                       return;
                     }
@@ -168,7 +172,9 @@ class _AdminScreenState extends State<AdminScreen>
               ),
               TextField(
                 controller: typeCtrl,
-                decoration: const InputDecoration(labelText: 'Type (percent/fixed)'),
+                decoration: const InputDecoration(
+                  labelText: 'Type (percent/fixed)',
+                ),
               ),
               TextField(
                 controller: valueCtrl,
@@ -177,12 +183,16 @@ class _AdminScreenState extends State<AdminScreen>
               ),
               TextField(
                 controller: minCtrl,
-                decoration: const InputDecoration(labelText: 'Min order amount'),
+                decoration: const InputDecoration(
+                  labelText: 'Min order amount',
+                ),
                 keyboardType: TextInputType.number,
               ),
               TextField(
                 controller: maxCtrl,
-                decoration: const InputDecoration(labelText: 'Max discount (optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Max discount (optional)',
+                ),
                 keyboardType: TextInputType.number,
               ),
             ],
@@ -264,7 +274,8 @@ class _AdminScreenState extends State<AdminScreen>
                       trailing: Wrap(
                         children: [
                           IconButton(
-                            onPressed: () => _openProductDialog(product: product),
+                            onPressed: () =>
+                                _openProductDialog(product: product),
                             icon: const Icon(Icons.edit),
                           ),
                           IconButton(
@@ -330,8 +341,14 @@ class _AdminScreenState extends State<AdminScreen>
                     DropdownMenuItem(value: 'pending', child: Text('pending')),
                     DropdownMenuItem(value: 'paid', child: Text('paid')),
                     DropdownMenuItem(value: 'shipped', child: Text('shipped')),
-                    DropdownMenuItem(value: 'completed', child: Text('completed')),
-                    DropdownMenuItem(value: 'cancelled', child: Text('cancelled')),
+                    DropdownMenuItem(
+                      value: 'completed',
+                      child: Text('completed'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'cancelled',
+                      child: Text('cancelled'),
+                    ),
                   ],
                   onChanged: (value) {
                     if (value == null) {

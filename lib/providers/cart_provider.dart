@@ -37,7 +37,10 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<void> updateItemQty(int cartItemId, int quantity) async {
-    await _cartService.updateQuantity(cartItemId: cartItemId, quantity: quantity);
+    await _cartService.updateQuantity(
+      cartItemId: cartItemId,
+      quantity: quantity,
+    );
     await loadCart();
   }
 

@@ -4,10 +4,7 @@ import '../models/coupon.dart';
 import '../supabase_client.dart';
 
 class OrderService {
-  double calculateDiscount({
-    required Coupon coupon,
-    required double subtotal,
-  }) {
+  double calculateDiscount({required Coupon coupon, required double subtotal}) {
     if (subtotal < coupon.minOrderAmount) {
       return 0;
     }
@@ -81,7 +78,10 @@ class OrderService {
     await supabase.from('order_items').insert(itemsPayload);
 
     if (coupon != null) {
-      await supabase.rpc('increment_coupon_usage', params: {'coupon_id': coupon.id});
+      await supabase.rpc(
+        'increment_coupon_usage',
+        params: {'coupon_id': coupon.id},
+      );
     }
   }
 
@@ -108,7 +108,10 @@ class OrderService {
     return data.map((item) => Order.fromMap(item)).toList();
   }
 
-  Future<void> updateOrderStatus({required int orderId, required String status}) async {
+  Future<void> updateOrderStatus({
+    required int orderId,
+    required String status,
+  }) async {
     await supabase.from('orders').update({'status': status}).eq('id', orderId);
   }
 }

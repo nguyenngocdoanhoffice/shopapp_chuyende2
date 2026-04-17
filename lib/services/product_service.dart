@@ -61,15 +61,18 @@ class ProductService {
     String? imageUrl,
     bool isActive = true,
   }) async {
-    await supabase.from('products').update({
-      'name': name,
-      'description': description,
-      'category': category,
-      'price': price,
-      'stock': stock,
-      'image_url': imageUrl,
-      'is_active': isActive,
-    }).eq('id', id);
+    await supabase
+        .from('products')
+        .update({
+          'name': name,
+          'description': description,
+          'category': category,
+          'price': price,
+          'stock': stock,
+          'image_url': imageUrl,
+          'is_active': isActive,
+        })
+        .eq('id', id);
   }
 
   Future<void> deleteProduct(int id) async {

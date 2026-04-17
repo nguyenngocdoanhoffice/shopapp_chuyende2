@@ -51,9 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CartScreen()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const CartScreen()));
             },
             icon: Badge(
               label: Text('${cartProvider.totalItems}'),
@@ -132,7 +132,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 separatorBuilder: (_, index) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final category = productProvider.categories[index];
-                  final isSelected = category == productProvider.selectedCategory;
+                  final isSelected =
+                      category == productProvider.selectedCategory;
                   return ChoiceChip(
                     label: Text(category),
                     selected: isSelected,
@@ -149,11 +150,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: productProvider.products.length,
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 0.72,
-                      ),
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 0.72,
+                          ),
                       itemBuilder: (context, index) {
                         final product = productProvider.products[index];
                         return _ProductCard(product: product);
@@ -197,11 +198,7 @@ class _ProductCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                product.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+              Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis),
               Text(
                 '\$${product.price.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.titleMedium,
@@ -212,7 +209,9 @@ class _ProductCard extends StatelessWidget {
                   onPressed: product.stock <= 0
                       ? null
                       : () async {
-                          await context.read<CartProvider>().addItem(product.id);
+                          await context.read<CartProvider>().addItem(
+                            product.id,
+                          );
                           if (!context.mounted) {
                             return;
                           }

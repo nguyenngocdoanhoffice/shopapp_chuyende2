@@ -25,7 +25,10 @@ class ProductDetailScreen extends StatelessWidget {
                   : Image.network(product.imageUrl!, fit: BoxFit.cover),
             ),
             const SizedBox(height: 16),
-            Text(product.name, style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              product.name,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             Text(product.category),
             const SizedBox(height: 8),
             Text('\$${product.price.toStringAsFixed(2)}'),

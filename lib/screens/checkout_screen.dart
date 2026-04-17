@@ -40,15 +40,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Coupon applied: -\$${discount.toStringAsFixed(2)}')),
+        SnackBar(
+          content: Text('Coupon applied: -\$${discount.toStringAsFixed(2)}'),
+        ),
       );
     } catch (e) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -80,9 +82,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -118,7 +120,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               initialValue: _paymentMethod,
               items: const [
                 DropdownMenuItem(value: 'cod', child: Text('Cash on Delivery')),
-                DropdownMenuItem(value: 'bank_transfer', child: Text('Bank Transfer')),
+                DropdownMenuItem(
+                  value: 'bank_transfer',
+                  child: Text('Bank Transfer'),
+                ),
               ],
               onChanged: (value) => setState(() {
                 _paymentMethod = value ?? 'cod';

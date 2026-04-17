@@ -49,10 +49,11 @@ class CouponService {
     });
   }
 
-  Future<void> updateCouponStatus({required int id, required bool isActive}) async {
-    await supabase
-        .from('coupons')
-        .update({'is_active': isActive}).eq('id', id);
+  Future<void> updateCouponStatus({
+    required int id,
+    required bool isActive,
+  }) async {
+    await supabase.from('coupons').update({'is_active': isActive}).eq('id', id);
   }
 
   Future<void> deleteCoupon(int id) async {
