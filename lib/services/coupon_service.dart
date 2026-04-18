@@ -22,11 +22,15 @@ class CouponService {
   }
 
   Future<List<Coupon>> getCoupons() async {
-    final data = await supabase
-        .from('coupons')
-        .select()
-        .order('created_at', ascending: false);
-    return data.map((item) => Coupon.fromMap(item)).toList();
+    final data =
+        await supabase
+                .from('coupons')
+                .select()
+                .order('created_at', ascending: false)
+            as List<dynamic>;
+    return data
+        .map((item) => Coupon.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> createCoupon({

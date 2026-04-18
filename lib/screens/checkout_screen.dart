@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_strings.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
+import '../ui/widgets/app_surfaces.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -41,7 +43,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Coupon applied: -\$${discount.toStringAsFixed(2)}'),
+          content: Text(
+            'Mã giảm giá đã áp dụng: -\$${discount.toStringAsFixed(2)}',
+          ),
         ),
       );
     } catch (e) {
@@ -60,7 +64,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (_addressCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Shipping address is required')),
+        const SnackBar(content: Text(AppStrings.shippingAddressRequired)),
       );
       return;
     }
@@ -75,7 +79,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order placed successfully')),
+        const SnackBar(content: Text(AppStrings.orderPlacedSuccess)),
       );
       Navigator.of(context).pop();
     } catch (e) {
@@ -94,57 +98,150 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final total = cartProvider.subtotal - _discount + 5;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: AppBar(title: const Text(AppStrings.checkoutTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            TextField(
-              controller: _addressCtrl,
-              decoration: const InputDecoration(labelText: 'Shipping address'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _couponCtrl,
-              decoration: InputDecoration(
-                labelText: 'Coupon code',
-                suffixIcon: IconButton(
-                  onPressed: _applyCoupon,
-                  icon: const Icon(Icons.check),
-                ),
+            AppSectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.shippingDetails,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _addressCtrl,
+                    decoration: const InputDecoration(
+                      labelText: AppStrings.shippingAddress,
+                      prefixIcon: Icon(Icons.location_on_outlined),
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _paymentMethod,
-              items: const [
-                DropdownMenuItem(value: 'cod', child: Text('Cash on Delivery')),
-                DropdownMenuItem(
-                  value: 'bank_transfer',
-                  child: Text('Bank Transfer'),
-                ),
-              ],
-              onChanged: (value) => setState(() {
-                _paymentMethod = value ?? 'cod';
-              }),
-              decoration: const InputDecoration(labelText: 'Payment method'),
-            ),
-            const SizedBox(height: 24),
-            Text('Subtotal: \$${cartProvider.subtotal.toStringAsFixed(2)}'),
-            Text('Discount: -\$${_discount.toStringAsFixed(2)}'),
-            const Text('Shipping fee: \$5.00'),
-            Text(
-              'Total: \$${total.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.titleLarge,
+            AppSectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.coupon,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _couponCtrl,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: InputDecoration(
+                      labelText: AppStrings.couponCode,
+                      prefixIcon: const Icon(Icons.discount_outlined),
+                      suffixIcon: IconButton(
+                        onPressed: _applyCoupon,
+                        icon: const Icon(Icons.check_circle_outline),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
-            ElevatedButton(
+            AppSectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.paymentMethod,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  SegmentedButton<String>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(
+                        value: 'cod',
+                        icon: Icon(Icons.payments_outlined),
+                        label: Text(AppStrings.cod),
+                      ),
+                      ButtonSegment(
+                        value: 'bank_transfer',
+                        icon: Icon(Icons.account_balance_outlined),
+                        label: Text(AppStrings.bankLabel),
+                      ),
+                    ],
+                    selected: {_paymentMethod},
+                    onSelectionChanged: (value) => setState(() {
+                      _paymentMethod = value.first;
+                    }),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            AppSectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.orderSummary,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  _SummaryRow(
+                    label: AppStrings.subtotal,
+                    value: '\$${cartProvider.subtotal.toStringAsFixed(2)}',
+                  ),
+                  _SummaryRow(
+                    label: AppStrings.discount,
+                    value: '-\$${_discount.toStringAsFixed(2)}',
+                  ),
+                  const _SummaryRow(
+                    label: AppStrings.shippingFee,
+                    value: '\$5.00',
+                  ),
+                  const Divider(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppStrings.total,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      PriceText(total),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            FilledButton.icon(
               onPressed: _checkout,
-              child: const Text('Place order'),
+              icon: const Icon(Icons.check_circle_outline),
+              label: const Text(AppStrings.placeOrder),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _SummaryRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [Text(label), Text(value)],
       ),
     );
   }

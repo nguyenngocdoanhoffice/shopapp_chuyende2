@@ -4,17 +4,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'providers/admin_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/category_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/product_provider.dart';
+import 'providers/user_management_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
+import 'services/category_service.dart';
 import 'services/cart_service.dart';
 import 'services/coupon_service.dart';
 import 'services/order_service.dart';
 import 'services/product_service.dart';
+import 'services/user_service.dart';
 import 'supabase_client.dart';
+import 'ui/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,11 +48,16 @@ class ShopApp extends StatelessWidget {
     final cartService = CartService();
     final couponService = CouponService();
     final orderService = OrderService();
+    final categoryService = CategoryService();
+    final userService = UserService();
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider(authService)),
         ChangeNotifierProvider(create: (_) => ProductProvider(productService)),
+        ChangeNotifierProvider(
+          create: (_) => CategoryProvider(categoryService),
+        ),
         ChangeNotifierProvider(create: (_) => CartProvider(cartService)),
         ChangeNotifierProvider(
           create: (_) => OrderProvider(orderService, couponService),
@@ -55,13 +65,16 @@ class ShopApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AdminProvider(orderService, couponService),
         ),
+        ChangeNotifierProvider(
+          create: (_) => UserManagementProvider(userService),
+        ),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Mobile Device Shop',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: ThemeMode.system,
         home: const AuthGate(),
       ),
     );

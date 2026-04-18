@@ -68,4 +68,21 @@ class AuthService {
       'email': user.email,
     });
   }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = currentUser;
+    if (user == null || user.email == null) {
+      throw Exception('Not authenticated');
+    }
+
+    await supabase.auth.signInWithPassword(
+      email: user.email!,
+      password: currentPassword,
+    );
+
+    await supabase.auth.updateUser(UserAttributes(password: newPassword));
+  }
 }

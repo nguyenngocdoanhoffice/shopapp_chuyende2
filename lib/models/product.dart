@@ -3,6 +3,7 @@ class Product {
   final String name;
   final String description;
   final String category;
+  final int? categoryId;
   final double price;
   final int stock;
   final String? imageUrl;
@@ -13,6 +14,7 @@ class Product {
     required this.name,
     required this.description,
     required this.category,
+    this.categoryId,
     required this.price,
     required this.stock,
     this.imageUrl,
@@ -20,11 +22,15 @@ class Product {
   });
 
   factory Product.fromMap(Map<String, dynamic> map) {
+    final relatedCategory = map['categories'] as Map<String, dynamic>?;
+    final categoryName = relatedCategory?['name'] as String?;
+
     return Product(
       id: map['id'] as int,
       name: map['name'] as String,
       description: map['description'] as String? ?? '',
-      category: map['category'] as String? ?? 'Other',
+      category: categoryName ?? map['category'] as String? ?? 'Other',
+      categoryId: map['category_id'] as int?,
       price: (map['price'] as num).toDouble(),
       stock: map['stock'] as int? ?? 0,
       imageUrl: map['image_url'] as String?,
@@ -38,6 +44,7 @@ class Product {
       'name': name,
       'description': description,
       'category': category,
+      'category_id': categoryId,
       'price': price,
       'stock': stock,
       'image_url': imageUrl,

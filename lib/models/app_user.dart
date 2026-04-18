@@ -6,6 +6,7 @@ class AppUser {
   final String address;
   final String role;
   final String? avatarUrl;
+  final DateTime? createdAt;
 
   const AppUser({
     required this.id,
@@ -15,6 +16,7 @@ class AppUser {
     required this.address,
     required this.role,
     this.avatarUrl,
+    this.createdAt,
   });
 
   bool get isAdmin => role == 'admin';
@@ -28,6 +30,9 @@ class AppUser {
       address: map['address'] as String? ?? '',
       role: map['role'] as String? ?? 'user',
       avatarUrl: map['avatar_url'] as String?,
+      createdAt: map['created_at'] == null
+          ? null
+          : DateTime.tryParse(map['created_at'] as String),
     );
   }
 
@@ -40,6 +45,7 @@ class AppUser {
       'address': address,
       'role': role,
       'avatar_url': avatarUrl,
+      'created_at': createdAt?.toIso8601String(),
     };
   }
 }

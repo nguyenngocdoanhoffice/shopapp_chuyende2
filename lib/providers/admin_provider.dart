@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/coupon.dart';
 import '../models/order.dart';
+import '../models/order_detail.dart';
 import '../services/coupon_service.dart';
 import '../services/order_service.dart';
 
@@ -34,6 +35,10 @@ class AdminProvider extends ChangeNotifier {
   Future<void> updateOrderStatus(int orderId, String status) async {
     await _orderService.updateOrderStatus(orderId: orderId, status: status);
     await loadDashboardData();
+  }
+
+  Future<OrderDetail> getOrderDetail(int orderId) async {
+    return _orderService.getOrderDetailById(orderId);
   }
 
   Future<void> createCoupon({

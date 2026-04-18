@@ -3,7 +3,10 @@ import '../supabase_client.dart';
 
 class ProductService {
   Future<List<Product>> getProducts({String? search, String? category}) async {
-    dynamic query = supabase.from('products').select().eq('is_active', true);
+    dynamic query = supabase
+        .from('products')
+        .select('*, categories(id, name)')
+        .eq('is_active', true);
 
     if (search != null && search.trim().isNotEmpty) {
       query = query.ilike('name', '%${search.trim()}%');
@@ -12,14 +15,21 @@ class ProductService {
       query = query.eq('category', category);
     }
 
-    final data = await query.order('created_at', ascending: false);
-    return data.map((item) => Product.fromMap(item)).toList();
+    final data =
+        await query.order('created_at', ascending: false) as List<dynamic>;
+    return data
+        .map((item) => Product.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<String>> getCategories() async {
-    final data = await supabase.from('products').select('category');
+    final data =
+        await supabase.from('products').select('category') as List<dynamic>;
     final categories = data
-        .map((item) => item['category'] as String? ?? 'Other')
+        .map(
+          (item) =>
+              (item as Map<String, dynamic>)['category'] as String? ?? 'Other',
+        )
         .toSet()
         .toList();
     categories.sort();
@@ -35,6 +45,7 @@ class ProductService {
     required String name,
     required String description,
     required String category,
+    int? categoryId,
     required double price,
     required int stock,
     String? imageUrl,
@@ -44,6 +55,7 @@ class ProductService {
       'name': name,
       'description': description,
       'category': category,
+      'category_id': categoryId,
       'price': price,
       'stock': stock,
       'image_url': imageUrl,
@@ -56,6 +68,7 @@ class ProductService {
     required String name,
     required String description,
     required String category,
+    int? categoryId,
     required double price,
     required int stock,
     String? imageUrl,
@@ -67,6 +80,7 @@ class ProductService {
           'name': name,
           'description': description,
           'category': category,
+          'category_id': categoryId,
           'price': price,
           'stock': stock,
           'image_url': imageUrl,

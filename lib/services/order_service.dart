@@ -1,6 +1,7 @@
 import '../models/cart_item.dart';
 import '../models/order.dart';
 import '../models/coupon.dart';
+import '../models/order_detail.dart';
 import '../supabase_client.dart';
 
 class OrderService {
@@ -91,21 +92,29 @@ class OrderService {
       return [];
     }
 
-    final data = await supabase
-        .from('orders')
-        .select('*, order_items(*, products(*))')
-        .eq('user_id', userId)
-        .order('created_at', ascending: false);
+    final data =
+        await supabase
+                .from('orders')
+                .select('*, order_items(*, products(*))')
+                .eq('user_id', userId)
+                .order('created_at', ascending: false)
+            as List<dynamic>;
 
-    return data.map((item) => Order.fromMap(item)).toList();
+    return data
+        .map((item) => Order.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<Order>> getAllOrders() async {
-    final data = await supabase
-        .from('orders')
-        .select('*, order_items(*, products(*))')
-        .order('created_at', ascending: false);
-    return data.map((item) => Order.fromMap(item)).toList();
+    final data =
+        await supabase
+                .from('orders')
+                .select('*, order_items(*, products(*))')
+                .order('created_at', ascending: false)
+            as List<dynamic>;
+    return data
+        .map((item) => Order.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> updateOrderStatus({
@@ -113,5 +122,19 @@ class OrderService {
     required String status,
   }) async {
     await supabase.from('orders').update({'status': status}).eq('id', orderId);
+  }
+
+  Future<OrderDetail> getOrderDetailById(int orderId) async {
+    final data = await supabase
+        .from('orders')
+        .select('''
+          *,
+          users(id, email, full_name, phone, address, role, created_at),
+          order_items(quantity, unit_price, line_total, products(name))
+        ''')
+        .eq('id', orderId)
+        .single();
+
+    return OrderDetail.fromMap(data);
   }
 }
