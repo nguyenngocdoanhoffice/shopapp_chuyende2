@@ -16,11 +16,13 @@ class ProductProvider extends ChangeNotifier {
   String? error;
 
   Future<void> loadInitialData() async {
+    // Tai dong thoi danh muc filter va danh sach san pham.
     await Future.wait([loadCategories(), loadProducts()]);
   }
 
   Future<void> loadCategories() async {
     try {
+      // Danh muc nay dung cho bo loc tren Home, du lieu lay tu cot products.category.
       categories = await _productService.getCategories();
       notifyListeners();
     } catch (e) {
@@ -31,6 +33,7 @@ class ProductProvider extends ChangeNotifier {
 
   Future<void> loadProducts() async {
     try {
+      // Query san pham voi 2 dieu kien dong: tu khoa tim kiem + danh muc dang chon.
       isLoading = true;
       error = null;
       notifyListeners();
@@ -48,11 +51,13 @@ class ProductProvider extends ChangeNotifier {
   }
 
   Future<void> setSearch(String value) async {
+    // Cap nhat state tim kiem va tai lai danh sach.
     searchKeyword = value;
     await loadProducts();
   }
 
   Future<void> setCategory(String value) async {
+    // Cap nhat category filter va tai lai danh sach.
     selectedCategory = value;
     await loadProducts();
   }
@@ -66,6 +71,7 @@ class ProductProvider extends ChangeNotifier {
     required int stock,
     String? imageUrl,
   }) async {
+    // Tao san pham qua ProductService, sau do refresh ca category + products.
     await _productService.createProduct(
       name: name,
       description: description,
@@ -89,6 +95,7 @@ class ProductProvider extends ChangeNotifier {
     String? imageUrl,
     required bool isActive,
   }) async {
+    // Sua san pham qua ProductService, sau do refresh du lieu hien thi.
     await _productService.updateProduct(
       id: id,
       name: name,
@@ -104,6 +111,7 @@ class ProductProvider extends ChangeNotifier {
   }
 
   Future<void> deleteProduct(int id) async {
+    // Xoa san pham va tai lai danh sach hien tai.
     await _productService.deleteProduct(id);
     await loadProducts();
   }

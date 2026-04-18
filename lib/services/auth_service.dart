@@ -30,6 +30,9 @@ class AuthService {
   }
 
   Future<AppUser?> getProfile() async {
+    // Nguon du lieu profile:
+    // 1) user id/email tu Supabase Auth session
+    // 2) thong tin bo sung tu bang public.users
     final user = currentUser;
     if (user == null) {
       return null;
@@ -54,6 +57,7 @@ class AuthService {
     required String address,
     String? avatarUrl,
   }) async {
+    // Ghi de/chen profile vao bang users theo id cua auth user hien tai.
     final user = currentUser;
     if (user == null) {
       throw Exception('Not authenticated');
@@ -73,6 +77,9 @@ class AuthService {
     required String currentPassword,
     required String newPassword,
   }) async {
+    // Supabase yeu cau xac thuc lai truoc khi doi mat khau.
+    // Buoc 1: signIn lai bang mat khau cu
+    // Buoc 2: updateUser voi mat khau moi
     final user = currentUser;
     if (user == null || user.email == null) {
       throw Exception('Not authenticated');

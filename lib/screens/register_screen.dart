@@ -28,10 +28,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _submit() async {
+    // Buoc 1: validate form tren UI.
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    // Buoc 2: goi AuthProvider -> AuthService -> Supabase Auth de dang ky.
     final authProvider = context.read<AuthProvider>();
     final ok = await authProvider.register(
       email: _emailCtrl.text.trim(),
@@ -43,6 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    // Buoc 3: thong bao ket qua va dieu huong.
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

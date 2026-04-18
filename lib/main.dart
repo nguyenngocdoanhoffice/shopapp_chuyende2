@@ -24,6 +24,8 @@ import 'ui/app_theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Khoi tao ket noi Supabase truoc khi build app.
+  // URL/ANON KEY duoc lay tu AppConfig (dart-define).
   if (AppConfig.isConfigured) {
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
@@ -39,10 +41,13 @@ class ShopApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Neu chua cau hinh Supabase thi chan app tai man hinh huong dan.
     if (!AppConfig.isConfigured) {
       return const MaterialApp(home: MissingConfigScreen());
     }
 
+    // Tao service 1 lan tai root de cac Provider su dung lai.
+    // Luong tong quat: Screen -> Provider -> Service -> Supabase.
     final authService = AuthService();
     final productService = ProductService();
     final cartService = CartService();
@@ -86,6 +91,8 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Theo doi trang thai dang nhap tu AuthProvider.
+    // Co session thi vao Home, khong thi ve Login.
     final isLoggedIn = context.watch<AuthProvider>().isLoggedIn;
     return isLoggedIn ? const HomeScreen() : const LoginScreen();
   }

@@ -10,6 +10,8 @@ class AuthProvider extends ChangeNotifier {
   final AuthService _authService;
 
   AuthProvider(this._authService) {
+    // Lang nghe thay doi session Supabase (login/logout/refresh token).
+    // Moi lan session doi se tai lai profile tu bang users.
     _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((_) {
       loadProfile();
     });
@@ -26,6 +28,8 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> loadProfile() async {
     try {
+      // Lay thong tin nguoi dung dang nhap tu AuthService.getProfile()
+      // (du lieu nguon: Supabase auth + bang public.users).
       isLoading = true;
       error = null;
       notifyListeners();
@@ -44,6 +48,7 @@ class AuthProvider extends ChangeNotifier {
     required String fullName,
   }) async {
     try {
+      // Dang ky tai Supabase Auth, metadata kem full_name.
       isLoading = true;
       error = null;
       notifyListeners();
@@ -64,6 +69,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> login({required String email, required String password}) async {
     try {
+      // Dang nhap bang email/password, sau do tai profile de cap nhat UI.
       isLoading = true;
       error = null;
       notifyListeners();
@@ -80,6 +86,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    // Dang xuat session Supabase va xoa cache profile tren app.
     await _authService.signOut();
     userProfile = null;
     notifyListeners();
@@ -92,6 +99,7 @@ class AuthProvider extends ChangeNotifier {
     String? avatarUrl,
   }) async {
     try {
+      // Upsert thong tin vao bang users, sau do load lai profile moi.
       isLoading = true;
       error = null;
       notifyListeners();
@@ -117,6 +125,7 @@ class AuthProvider extends ChangeNotifier {
     required String newPassword,
   }) async {
     try {
+      // Doi mat khau theo luong: xac thuc lai mat khau cu -> cap nhat mat khau moi.
       isLoading = true;
       error = null;
       notifyListeners();

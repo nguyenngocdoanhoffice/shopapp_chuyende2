@@ -6,6 +6,9 @@ import '../supabase_client.dart';
 
 class OrderService {
   double calculateDiscount({required Coupon coupon, required double subtotal}) {
+    // Tinh giam gia theo 2 kieu:
+    // - percent: theo phan tram, co the bi gioi han boi maxDiscount
+    // - fixed: giam truc tiep, khong vuot qua subtotal
     if (subtotal < coupon.minOrderAmount) {
       return 0;
     }
@@ -28,6 +31,12 @@ class OrderService {
     required String paymentMethod,
     Coupon? coupon,
   }) async {
+    // Nguon du lieu dau vao: danh sach cartItems tu CartProvider.
+    // Luong xu ly:
+    // 1) Tinh subtotal/discount/shipping/total
+    // 2) Tao order trong bang orders
+    // 3) Tao danh sach order_items
+    // 4) Tang luot su dung coupon (neu co)
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) {
       throw Exception('Not authenticated');
@@ -87,6 +96,7 @@ class OrderService {
   }
 
   Future<List<Order>> getMyOrders() async {
+    // Lay lich su don cua user hien tai (orders + order_items + products).
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) {
       return [];
@@ -106,6 +116,7 @@ class OrderService {
   }
 
   Future<List<Order>> getAllOrders() async {
+    // Du lieu cho admin dashboard: toan bo orders, moi nhat truoc.
     final data =
         await supabase
                 .from('orders')
@@ -121,10 +132,12 @@ class OrderService {
     required int orderId,
     required String status,
   }) async {
+    // Cap nhat trang thai don hang theo id.
     await supabase.from('orders').update({'status': status}).eq('id', orderId);
   }
 
   Future<OrderDetail> getOrderDetailById(int orderId) async {
+    // Chi tiet don cho admin: join users + order_items + products(name).
     final data = await supabase
         .from('orders')
         .select('''

@@ -3,6 +3,7 @@ import '../supabase_client.dart';
 
 class CartService {
   Future<int> _ensureCartId() async {
+    // Moi user co 1 cart. Neu chua co thi tao moi va tra ve cart id.
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) {
       throw Exception('Not authenticated');
@@ -28,6 +29,7 @@ class CartService {
   }
 
   Future<List<CartItem>> getCartItems() async {
+    // Nguon du lieu: cart_items join products theo cart_id hien tai.
     final cartId = await _ensureCartId();
 
     final data = await supabase
@@ -43,6 +45,7 @@ class CartService {
     required int productId,
     required int quantity,
   }) async {
+    // Lay gia hien tai tu products, sau do insert hoac cong don so luong neu da ton tai item.
     final cartId = await _ensureCartId();
     final product = await supabase
         .from('products')
@@ -80,6 +83,7 @@ class CartService {
     required int cartItemId,
     required int quantity,
   }) async {
+    // Neu quantity <= 0 thi xoa item khoi gio.
     if (quantity <= 0) {
       await removeItem(cartItemId);
       return;
@@ -96,6 +100,7 @@ class CartService {
   }
 
   Future<void> clearCart() async {
+    // Xoa toan bo item cua gio hien tai (thuong goi sau checkout thanh cong).
     final cartId = await _ensureCartId();
     await supabase.from('cart_items').delete().eq('cart_id', cartId);
   }
