@@ -49,6 +49,7 @@ class AdminProvider extends ChangeNotifier {
     double? maxDiscount,
     required DateTime startAt,
     required DateTime endAt,
+    List<String>? applicableUserIds,
   }) async {
     await _couponService.createCoupon(
       code: code,
@@ -58,6 +59,7 @@ class AdminProvider extends ChangeNotifier {
       maxDiscount: maxDiscount,
       startAt: startAt,
       endAt: endAt,
+      applicableUserIds: applicableUserIds,
     );
     await loadDashboardData();
   }

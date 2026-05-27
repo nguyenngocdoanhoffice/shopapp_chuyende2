@@ -34,7 +34,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(category == null ? 'Tao danh muc' : 'Sua danh muc'),
+        title: Text(category == null ? 'Tạo danh mục' : 'Sửa danh mục'),
         content: SizedBox(
           width: 400,
           child: Column(
@@ -42,12 +42,12 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
             children: [
               TextField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Ten danh muc'),
+                decoration: const InputDecoration(labelText: 'Tên danh mục'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: descriptionCtrl,
-                decoration: const InputDecoration(labelText: 'Mo ta'),
+                decoration: const InputDecoration(labelText: 'Mô tả'),
                 maxLines: 2,
               ),
             ],
@@ -56,7 +56,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Huy'),
+            child: const Text('Hủy'),
           ),
           FilledButton(
             onPressed: () async {
@@ -81,7 +81,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
               }
               Navigator.of(context).pop();
             },
-            child: const Text('Luu'),
+            child: const Text('Lưu'),
           ),
         ],
       ),
@@ -93,16 +93,16 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xoa danh muc'),
-        content: Text('Ban co chac chan muon xoa "${category.name}"?'),
+        title: const Text('Xóa danh mục'),
+        content: Text('Bạn có chắc chắn muốn xóa "${category.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Huy'),
+            child: const Text('Hủy'),
           ),
           FilledButton.tonal(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Xoa'),
+            child: const Text('Xóa'),
           ),
         ],
       ),
@@ -126,18 +126,18 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
             child: FilledButton.icon(
               onPressed: () => _openCategoryDialog(),
               icon: const Icon(Icons.add),
-              label: const Text('Them danh muc'),
+              label: const Text('Thêm danh mục'),
             ),
           ),
         ),
         Expanded(
           child: provider.isLoading
-              ? const AppLoading(message: 'Dang tai danh muc')
+              ? const AppLoading(message: 'Đang tải danh mục')
               : provider.categories.isEmpty
               ? const AppEmptyState(
                   icon: Icons.category_outlined,
-                  title: 'Chua co danh muc',
-                  subtitle: 'Hay tao danh muc dau tien.',
+                  title: 'Chưa có danh mục',
+                  subtitle: 'Hãy tạo danh mục đầu tiên.',
                 )
               : ListView.separated(
                   padding: const EdgeInsets.all(16),
@@ -186,7 +186,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Quan ly danh muc')),
+      appBar: AppBar(title: const Text('Quản lý danh mục')),
       body: content,
     );
   }

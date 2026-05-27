@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_strings.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
+import '../providers/product_provider.dart';
 import '../ui/widgets/app_surfaces.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -43,9 +44,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Mã giảm giá đã áp dụng: -\$${discount.toStringAsFixed(2)}',
-          ),
+          content: Text('Mã giảm giá đã áp dụng: -${discount.round()} ₫'),
         ),
       );
     } catch (e) {
@@ -61,6 +60,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _checkout() async {
     final cartProvider = context.read<CartProvider>();
     final orderProvider = context.read<OrderProvider>();
+    final productProvider = context.read<ProductProvider>();
 
     if (_addressCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -75,6 +75,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         shippingAddress: _addressCtrl.text.trim(),
         paymentMethod: _paymentMethod,
       );
+      await productProvider.loadProducts();
       if (!mounted) {
         return;
       }
@@ -192,15 +193,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 10),
                   _SummaryRow(
                     label: AppStrings.subtotal,
-                    value: '\$${cartProvider.subtotal.toStringAsFixed(2)}',
+                    value: '${cartProvider.subtotal.round()} ₫',
                   ),
                   _SummaryRow(
                     label: AppStrings.discount,
-                    value: '-\$${_discount.toStringAsFixed(2)}',
+                    value: '-${_discount.round()} ₫',
                   ),
                   const _SummaryRow(
                     label: AppStrings.shippingFee,
-                    value: '\$5.00',
+                    value: '5.000 ₫',
                   ),
                   const Divider(height: 20),
                   Row(

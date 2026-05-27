@@ -2,6 +2,16 @@ import '../models/cart_item.dart';
 import '../supabase_client.dart';
 
 class CartService {
+  Future<int> _getProductStock(int productId) async {
+    final product = await supabase
+        .from('products')
+        .select('stock')
+        .eq('id', productId)
+        .single();
+
+    return (product['stock'] as int?) ?? 0;
+  }
+
   Future<int> _ensureCartId() async {
     // Moi user co 1 cart. Neu chua co thi tao moi va tra ve cart id.
     final userId = supabase.auth.currentUser?.id;
@@ -41,12 +51,17 @@ class CartService {
     return data.map((item) => CartItem.fromMap(item)).toList();
   }
 
-  Future<void> addToCart({
+  Future<CartItem> addToCart({
     required int productId,
     required int quantity,
   }) async {
     // Lay gia hien tai tu products, sau do insert hoac cong don so luong neu da ton tai item.
     final cartId = await _ensureCartId();
+    final stock = await _getProductStock(productId);
+    if (quantity > stock) {
+      throw Exception('Số lượng vượt quá tồn kho. Chỉ còn $stock sản phẩm.');
+    }
+
     final product = await supabase
         .from('products')
         .select('price')
@@ -63,36 +78,67 @@ class CartService {
         .maybeSingle();
 
     if (existing == null) {
-      await supabase.from('cart_items').insert({
-        'cart_id': cartId,
-        'product_id': productId,
-        'quantity': quantity,
-        'unit_price': unitPrice,
-      });
-      return;
+      final inserted = await supabase
+          .from('cart_items')
+          .insert({
+            'cart_id': cartId,
+            'product_id': productId,
+            'quantity': quantity,
+            'unit_price': unitPrice,
+          })
+          .select('*, products(*)')
+          .single();
+
+      return CartItem.fromMap(inserted);
     }
 
     final currentQty = existing['quantity'] as int;
-    await supabase
+    if (currentQty + quantity > stock) {
+      throw Exception(
+        'Số lượng vượt quá tồn kho. Chỉ còn ${stock - currentQty} sản phẩm có thể thêm.',
+      );
+    }
+
+    final updated = await supabase
         .from('cart_items')
         .update({'quantity': currentQty + quantity})
-        .eq('id', existing['id'] as int);
+        .eq('id', existing['id'] as int)
+        .select('*, products(*)')
+        .single();
+
+    return CartItem.fromMap(updated);
   }
 
-  Future<void> updateQuantity({
+  Future<CartItem> updateQuantity({
     required int cartItemId,
     required int quantity,
   }) async {
     // Neu quantity <= 0 thi xoa item khoi gio.
     if (quantity <= 0) {
       await removeItem(cartItemId);
-      return;
+      return Future.error(Exception('Quantity must be greater than zero'));
     }
 
-    await supabase
+    final cartItem = await supabase
+        .from('cart_items')
+        .select('id, product_id, quantity, products(stock)')
+        .eq('id', cartItemId)
+        .single();
+
+    final productMap = cartItem['products'] as Map<String, dynamic>?;
+    final stock = (productMap?['stock'] as int?) ?? 0;
+    if (quantity > stock) {
+      throw Exception('Số lượng vượt quá tồn kho. Chỉ còn $stock sản phẩm.');
+    }
+
+    final updated = await supabase
         .from('cart_items')
         .update({'quantity': quantity})
-        .eq('id', cartItemId);
+        .eq('id', cartItemId)
+        .select('*, products(*)')
+        .single();
+
+    return CartItem.fromMap(updated);
   }
 
   Future<void> removeItem(int cartItemId) async {

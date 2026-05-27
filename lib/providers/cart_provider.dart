@@ -31,26 +31,84 @@ class CartProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> addItem(int productId, {int quantity = 1}) async {
-    await _cartService.addToCart(productId: productId, quantity: quantity);
-    await loadCart();
+  Future<bool> addItem(int productId, {int quantity = 1}) async {
+    try {
+      final addedItem = await _cartService.addToCart(
+        productId: productId,
+        quantity: quantity,
+      );
+
+      final existingIndex = items.indexWhere(
+        (item) => item.productId == addedItem.productId,
+      );
+
+      if (existingIndex == -1) {
+        items = [...items, addedItem];
+      } else {
+        items[existingIndex] = addedItem;
+      }
+
+      error = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      error = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 
-  Future<void> updateItemQty(int cartItemId, int quantity) async {
-    await _cartService.updateQuantity(
-      cartItemId: cartItemId,
-      quantity: quantity,
-    );
-    await loadCart();
+  Future<bool> updateItemQty(int cartItemId, int quantity) async {
+    try {
+      if (quantity <= 0) {
+        await removeItem(cartItemId);
+        return true;
+      }
+
+      final updatedItem = await _cartService.updateQuantity(
+        cartItemId: cartItemId,
+        quantity: quantity,
+      );
+
+      final index = items.indexWhere((item) => item.id == cartItemId);
+      if (index != -1) {
+        items[index] = updatedItem;
+        error = null;
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      error = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 
-  Future<void> removeItem(int cartItemId) async {
-    await _cartService.removeItem(cartItemId);
-    await loadCart();
+  Future<bool> removeItem(int cartItemId) async {
+    try {
+      await _cartService.removeItem(cartItemId);
+      items.removeWhere((item) => item.id == cartItemId);
+      error = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      error = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 
-  Future<void> clearCart() async {
-    await _cartService.clearCart();
-    await loadCart();
+  Future<bool> clearCart() async {
+    try {
+      await _cartService.clearCart();
+      items = [];
+      error = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      error = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 }

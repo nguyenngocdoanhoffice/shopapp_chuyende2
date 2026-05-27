@@ -53,6 +53,7 @@ create table if not exists public.coupons (
   discount_value numeric(12,2) not null check (discount_value > 0),
   min_order_amount numeric(12,2) not null default 0,
   max_discount numeric(12,2),
+  applicable_user_ids text[],
   start_at timestamptz not null,
   end_at timestamptz not null,
   is_active boolean not null default true,
@@ -141,6 +142,164 @@ begin
 end;
 $$;
 
+create or replace function public.create_order_with_stock_check(
+  p_shipping_address text,
+  p_payment_method text,
+  p_cart_items jsonb,
+  p_coupon_id bigint default null
+)
+returns bigint
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_order_id bigint;
+  v_item jsonb;
+  v_product record;
+  v_coupon record;
+  v_quantity int;
+  v_unit_price numeric(12,2);
+  v_subtotal numeric(12,2) := 0;
+  v_discount numeric(12,2) := 0;
+  v_shipping_fee numeric(12,2) := 5.00;
+  v_total numeric(12,2);
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_cart_items is null or jsonb_array_length(p_cart_items) = 0 then
+    raise exception 'Cart is empty';
+  end if;
+
+  -- Lock each product row first so concurrent checkouts cannot oversell.
+  for v_item in select * from jsonb_array_elements(p_cart_items)
+  loop
+    v_quantity := coalesce((v_item->>'quantity')::int, 0);
+    if v_quantity <= 0 then
+      raise exception 'Invalid quantity';
+    end if;
+
+    select id, name, stock, price
+    into v_product
+    from public.products
+    where id = (v_item->>'product_id')::bigint
+    for update;
+
+    if not found then
+      raise exception 'Product not found';
+    end if;
+
+    if v_product.stock < v_quantity then
+      raise exception 'Số lượng mua của "%" vượt quá tồn kho. Chỉ còn % sản phẩm.',
+        v_product.name,
+        v_product.stock;
+    end if;
+
+    v_subtotal := v_subtotal + (v_product.price * v_quantity);
+  end loop;
+
+  if p_coupon_id is not null then
+    select *
+    into v_coupon
+    from public.coupons
+    where id = p_coupon_id
+      and is_active = true
+      and start_at <= now()
+      and end_at >= now()
+    for update;
+
+    if not found then
+      raise exception 'Coupon is invalid or expired';
+    end if;
+
+    if v_subtotal < v_coupon.min_order_amount then
+      raise exception 'Subtotal does not meet coupon minimum amount';
+    end if;
+
+    if v_coupon.discount_type = 'percent' then
+      v_discount := v_subtotal * v_coupon.discount_value / 100;
+      if v_coupon.max_discount is not null and v_discount > v_coupon.max_discount then
+        v_discount := v_coupon.max_discount;
+      end if;
+    else
+      v_discount := least(v_coupon.discount_value, v_subtotal);
+    end if;
+  end if;
+
+  v_total := v_subtotal - v_discount + v_shipping_fee;
+
+  insert into public.orders (
+    user_id,
+    coupon_id,
+    status,
+    payment_method,
+    subtotal,
+    discount_amount,
+    shipping_fee,
+    total_amount,
+    shipping_address
+  ) values (
+    v_user_id,
+    p_coupon_id,
+    'pending',
+    p_payment_method,
+    v_subtotal,
+    v_discount,
+    v_shipping_fee,
+    v_total,
+    p_shipping_address
+  )
+  returning id into v_order_id;
+
+  for v_item in select * from jsonb_array_elements(p_cart_items)
+  loop
+    v_quantity := (v_item->>'quantity')::int;
+
+    select id, price, stock
+    into v_product
+    from public.products
+    where id = (v_item->>'product_id')::bigint
+    for update;
+
+    v_unit_price := v_product.price;
+
+    update public.products
+    set stock = stock - v_quantity
+    where id = v_product.id
+      and stock >= v_quantity;
+
+    if not found then
+      raise exception 'Số lượng mua của "%" vượt quá tồn kho. Chỉ còn % sản phẩm.',
+        v_product.name,
+        v_product.stock;
+    end if;
+
+    insert into public.order_items (
+      order_id,
+      product_id,
+      quantity,
+      unit_price,
+      line_total
+    ) values (
+      v_order_id,
+      v_product.id,
+      v_quantity,
+      v_unit_price,
+      v_unit_price * v_quantity
+    );
+  end loop;
+
+  if p_coupon_id is not null then
+    perform public.increment_coupon_usage(p_coupon_id);
+  end if;
+
+  return v_order_id;
+end;
+$$;
+
 drop trigger if exists trg_users_updated_at on public.users;
 create trigger trg_users_updated_at
 before update on public.users
@@ -173,6 +332,9 @@ alter table public.cart_items enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.coupons enable row level security;
+
+-- Ensure existing deployments get the new column
+alter table public.coupons add column if not exists applicable_user_ids text[];
 
 -- USERS
 create policy "users_select_own_or_admin"

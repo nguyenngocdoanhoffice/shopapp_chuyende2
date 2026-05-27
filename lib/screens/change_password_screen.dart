@@ -43,8 +43,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       SnackBar(
         content: Text(
           ok
-              ? 'Doi mat khau thanh cong'
-              : authProvider.error ?? 'Doi mat khau that bai',
+              ? 'Đổi mật khẩu thành công'
+              : authProvider.error ?? 'Đổi mật khẩu thất bại',
         ),
       ),
     );
@@ -59,7 +59,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Doi mat khau')),
+      appBar: AppBar(title: const Text('Đổi mật khẩu')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -70,12 +70,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _currentCtrl,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Mat khau hien tai',
+                  labelText: 'Mật khẩu hiện tại',
                   prefixIcon: Icon(Icons.lock_outline),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Vui long nhap mat khau hien tai';
+                    return 'Vui lòng nhập mật khẩu hiện tại';
                   }
                   return null;
                 },
@@ -85,12 +85,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _newCtrl,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Mat khau moi',
+                  labelText: 'Mật khẩu mới',
                   prefixIcon: Icon(Icons.lock_reset_outlined),
                 ),
                 validator: (value) {
                   if (value == null || value.length < 6) {
-                    return 'Mat khau moi toi thieu 6 ky tu';
+                    return 'Mật khẩu mới tối thiểu 6 ký tự';
                   }
                   return null;
                 },
@@ -100,12 +100,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _confirmCtrl,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Xac nhan mat khau moi',
+                  labelText: 'Xác nhận mật khẩu mới',
                   prefixIcon: Icon(Icons.verified_user_outlined),
                 ),
                 validator: (value) {
                   if (value != _newCtrl.text) {
-                    return 'Xac nhan mat khau khong khop';
+                    return 'Xác nhận mật khẩu không khớp';
                   }
                   return null;
                 },
@@ -114,7 +114,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               FilledButton.icon(
                 onPressed: authProvider.isLoading ? null : _submit,
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('Cap nhat mat khau'),
+                label: const Text('Cập nhật mật khẩu'),
               ),
             ],
           ),

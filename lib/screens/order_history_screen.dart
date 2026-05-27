@@ -5,6 +5,7 @@ import '../l10n/app_strings.dart';
 import '../providers/order_provider.dart';
 import '../ui/widgets/app_state_widgets.dart';
 import '../ui/widgets/app_surfaces.dart';
+import 'order_detail_screen.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -43,47 +44,65 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 final order = provider.orders[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: AppSectionCard(
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              '${AppStrings.orderId}${order.id}',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const Spacer(),
-                            Chip(
-                              label: Text(order.status.toUpperCase()),
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ],
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => OrderDetailScreen(
+                            orderId: order.id,
+                            sequence: index + 1,
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        _InfoRow(
-                          label: AppStrings.items,
-                          value: '${order.items.length}',
-                        ),
-                        _InfoRow(
-                          label: AppStrings.paymentLabel,
-                          value: order.paymentMethod,
-                        ),
-                        _InfoRow(
-                          label: AppStrings.shippingLabel,
-                          value: order.shippingAddress,
-                        ),
-                        const Divider(height: 18),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              AppStrings.total,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            PriceText(order.totalAmount),
-                          ],
-                        ),
-                      ],
+                      );
+                    },
+                    child: AppSectionCard(
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '${AppStrings.orderId}${index + 1}',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'ID:${order.id}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const Spacer(),
+                              Chip(
+                                label: Text(order.status.toUpperCase()),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          _InfoRow(
+                            label: AppStrings.items,
+                            value: '${order.items.length}',
+                          ),
+                          _InfoRow(
+                            label: AppStrings.paymentLabel,
+                            value: order.paymentMethod,
+                          ),
+                          _InfoRow(
+                            label: AppStrings.shippingLabel,
+                            value: order.shippingAddress,
+                          ),
+                          const Divider(height: 18),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                AppStrings.total,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              PriceText(order.totalAmount),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );

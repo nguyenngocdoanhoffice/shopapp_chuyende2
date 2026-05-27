@@ -9,9 +9,12 @@ import '../providers/product_provider.dart';
 import '../ui/widgets/app_state_widgets.dart';
 import '../ui/widgets/app_surfaces.dart';
 import 'admin_screen.dart';
+import 'about_screen.dart';
 import 'cart_screen.dart';
 import 'login_screen.dart';
+import 'contact_screen.dart';
 import 'order_history_screen.dart';
+import 'my_coupons_screen.dart';
 import 'product_detail_screen.dart';
 import 'profile_screen.dart';
 
@@ -113,6 +116,33 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const OrderHistoryScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.discount_outlined),
+              title: const Text('Mã giảm giá của tôi'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MyCouponsScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('Giới thiệu'),
+              onTap: () {
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const AboutScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.contact_mail_outlined),
+              title: const Text('Liên hệ'),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ContactScreen()),
                 );
               },
             ),

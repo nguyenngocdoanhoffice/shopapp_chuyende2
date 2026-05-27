@@ -31,12 +31,6 @@ class OrderService {
     required String paymentMethod,
     Coupon? coupon,
   }) async {
-    // Nguon du lieu dau vao: danh sach cartItems tu CartProvider.
-    // Luong xu ly:
-    // 1) Tinh subtotal/discount/shipping/total
-    // 2) Tao order trong bang orders
-    // 3) Tao danh sach order_items
-    // 4) Tang luot su dung coupon (neu co)
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) {
       throw Exception('Not authenticated');
@@ -45,54 +39,21 @@ class OrderService {
       throw Exception('Cart is empty');
     }
 
-    final subtotal = cartItems.fold<double>(
-      0,
-      (sum, item) => sum + item.lineTotal,
-    );
-    final discount = coupon == null
-        ? 0.0
-        : calculateDiscount(coupon: coupon, subtotal: subtotal);
-    const shippingFee = 5.0;
-    final total = subtotal - discount + shippingFee;
-
-    final order = await supabase
-        .from('orders')
-        .insert({
-          'user_id': userId,
-          'coupon_id': coupon?.id,
-          'status': 'pending',
-          'payment_method': paymentMethod,
-          'subtotal': subtotal,
-          'discount_amount': discount,
-          'shipping_fee': shippingFee,
-          'total_amount': total,
-          'shipping_address': shippingAddress,
-        })
-        .select('id')
-        .single();
-
-    final orderId = order['id'] as int;
-
-    final itemsPayload = cartItems
+    final cartItemsPayload = cartItems
         .map(
-          (item) => {
-            'order_id': orderId,
-            'product_id': item.productId,
-            'quantity': item.quantity,
-            'unit_price': item.unitPrice,
-            'line_total': item.lineTotal,
-          },
+          (item) => {'product_id': item.productId, 'quantity': item.quantity},
         )
         .toList();
 
-    await supabase.from('order_items').insert(itemsPayload);
-
-    if (coupon != null) {
-      await supabase.rpc(
-        'increment_coupon_usage',
-        params: {'coupon_id': coupon.id},
-      );
-    }
+    await supabase.rpc(
+      'create_order_with_stock_check',
+      params: {
+        'p_shipping_address': shippingAddress,
+        'p_payment_method': paymentMethod,
+        'p_cart_items': cartItemsPayload,
+        'p_coupon_id': coupon?.id,
+      },
+    );
   }
 
   Future<List<Order>> getMyOrders() async {

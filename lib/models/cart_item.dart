@@ -17,6 +17,22 @@ class CartItem {
 
   double get lineTotal => quantity * unitPrice;
 
+  CartItem copyWith({
+    int? id,
+    int? productId,
+    int? quantity,
+    double? unitPrice,
+    Product? product,
+  }) {
+    return CartItem(
+      id: id ?? this.id,
+      productId: productId ?? this.productId,
+      quantity: quantity ?? this.quantity,
+      unitPrice: unitPrice ?? this.unitPrice,
+      product: product ?? this.product,
+    );
+  }
+
   factory CartItem.fromMap(Map<String, dynamic> map) {
     final productMap = map['products'] as Map<String, dynamic>?;
 

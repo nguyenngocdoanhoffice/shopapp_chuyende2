@@ -37,24 +37,24 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: const Text('Chi tiet nguoi dung'),
+            title: const Text('Chi tiết người dùng'),
             content: SizedBox(
               width: 420,
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  _line('Ho ten', detail.fullName),
+                  _line('Họ tên', detail.fullName),
                   _line('Email', detail.email),
-                  _line('So dien thoai', detail.phone),
-                  _line('Dia chi', detail.address),
+                  _line('Số điện thoại', detail.phone),
+                  _line('Địa chỉ', detail.address),
                   _line(
-                    'Ngay tao',
+                    'Ngày tạo',
                     detail.createdAt?.toLocal().toString() ?? '',
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: role,
-                    decoration: const InputDecoration(labelText: 'Vai tro'),
+                    decoration: const InputDecoration(labelText: 'Vai trò'),
                     items: const [
                       DropdownMenuItem(value: 'user', child: Text('user')),
                       DropdownMenuItem(value: 'admin', child: Text('admin')),
@@ -74,7 +74,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Dong'),
+                child: const Text('Đóng'),
               ),
               FilledButton(
                 onPressed: () async {
@@ -84,7 +84,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   }
                   Navigator.of(context).pop();
                 },
-                child: const Text('Cap nhat vai tro'),
+                child: const Text('Cập nhật vai trò'),
               ),
             ],
           );
@@ -98,12 +98,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final provider = context.watch<UserManagementProvider>();
 
     final body = provider.isLoading
-        ? const AppLoading(message: 'Dang tai nguoi dung')
+        ? const AppLoading(message: 'Đang tải người dùng')
         : provider.users.isEmpty
         ? const AppEmptyState(
             icon: Icons.people_alt_outlined,
-            title: 'Khong co nguoi dung',
-            subtitle: 'Danh sach nguoi dung se hien thi tai day.',
+            title: 'Không có người dùng',
+            subtitle: 'Danh sách người dùng sẽ hiển thị tại đây.',
           )
         : ListView.separated(
             padding: const EdgeInsets.all(16),
@@ -137,7 +137,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Quan ly nguoi dung')),
+      appBar: AppBar(title: const Text('Quản lý người dùng')),
       body: body,
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_strings.dart';
@@ -15,6 +16,17 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  final Map<int, TextEditingController> _qtyControllers = {};
+  final Map<int, String> _qtyErrors = {};
+
+  String _stockWarningText(String productName, int stock) {
+    if (stock <= 0) {
+      return '$productName hiện đã hết hàng. Vui lòng nhập thêm trong Admin > Products.';
+    }
+
+    return '$productName chỉ còn $stock sản phẩm trong kho. Nếu không đủ, vui lòng nhập thêm trong Admin > Products.';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -24,8 +36,107 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   @override
+  void dispose() {
+    for (final controller in _qtyControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _setQtyError(int itemId, String message) {
+    setState(() {
+      _qtyErrors[itemId] = message;
+    });
+  }
+
+  void _clearQtyError(int itemId) {
+    if (!_qtyErrors.containsKey(itemId)) {
+      return;
+    }
+    setState(() {
+      _qtyErrors.remove(itemId);
+    });
+  }
+
+  String? _qtyErrorFor(int itemId) => _qtyErrors[itemId];
+
+  int? _parseQuantity(String value) => int.tryParse(value.trim());
+
+  void _syncControllerValue(int itemId, int quantity) {
+    final controller = _qtyControllers[itemId];
+    if (controller == null) {
+      return;
+    }
+
+    final text = quantity.toString();
+    controller.value = controller.value.copyWith(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+      composing: TextRange.empty,
+    );
+  }
+
+  Future<bool> _commitPendingQuantities(CartProvider cartProvider) async {
+    final itemsSnapshot = List.of(cartProvider.items);
+
+    for (final item in itemsSnapshot) {
+      final controller = _controllerFor(item.id, item.quantity);
+      final stock = item.product?.stock ?? 0;
+      final qty = _parseQuantity(controller.text);
+
+      if (qty == null || qty <= 0) {
+        _setQtyError(item.id, 'Vui lòng nhập số lượng hợp lệ.');
+        return false;
+      }
+
+      if (qty > stock) {
+        _setQtyError(
+          item.id,
+          _stockWarningText(item.product?.name ?? 'Sản phẩm', stock),
+        );
+        return false;
+      }
+
+      _clearQtyError(item.id);
+
+      if (qty != item.quantity) {
+        final ok = await cartProvider.updateItemQty(item.id, qty);
+        if (!ok) {
+          _setQtyError(
+            item.id,
+            cartProvider.error ?? 'Không thể cập nhật số lượng',
+          );
+          return false;
+        }
+        controller.text = qty.toString();
+        _syncControllerValue(item.id, qty);
+      }
+    }
+
+    return true;
+  }
+
+  TextEditingController _controllerFor(int cartItemId, int quantity) {
+    return _qtyControllers.putIfAbsent(
+      cartItemId,
+      () => TextEditingController(text: quantity.toString()),
+    );
+  }
+
+  void _syncControllers(List items) {
+    final activeIds = items.map((item) => item.id).toSet();
+    final removedIds = _qtyControllers.keys
+        .where((id) => !activeIds.contains(id))
+        .toList();
+    for (final id in removedIds) {
+      _qtyControllers.remove(id)?.dispose();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cartProvider = context.watch<CartProvider>();
+    _syncControllers(cartProvider.items);
 
     return Scaffold(
       appBar: AppBar(title: const Text(AppStrings.yourCart)),
@@ -48,6 +159,12 @@ class _CartScreenState extends State<CartScreen> {
                       final item = cartProvider.items[index];
                       final productName =
                           item.product?.name ?? 'S\u1ea3n ph\u1ea9m';
+                      final stock = item.product?.stock ?? 0;
+                      final qtyController = _controllerFor(
+                        item.id,
+                        item.quantity,
+                      );
+                      final qtyError = _qtyErrorFor(item.id);
 
                       return AppSectionCard(
                         child: Row(
@@ -78,37 +195,204 @@ class _CartScreenState extends State<CartScreen> {
                                     ).textTheme.titleMedium,
                                   ),
                                   const SizedBox(height: 4),
+                                  // unit price removed as requested
+                                  const SizedBox(height: 4),
                                   Text(
-                                    '\$${item.unitPrice.toStringAsFixed(2)} ${AppStrings.each}',
+                                    'Tồn kho: $stock',
                                     style: Theme.of(
                                       context,
-                                    ).textTheme.bodyMedium,
+                                    ).textTheme.bodySmall,
                                   ),
                                   const SizedBox(height: 8),
                                   Row(
                                     children: [
                                       _QtyButton(
                                         icon: Icons.remove,
-                                        onTap: () => cartProvider.updateItemQty(
-                                          item.id,
-                                          item.quantity - 1,
+                                        onTap: () async {
+                                          final messenger =
+                                              ScaffoldMessenger.of(context);
+                                          final ok = await cartProvider
+                                              .updateItemQty(
+                                                item.id,
+                                                item.quantity - 1,
+                                              );
+                                          if (!ok) {
+                                            messenger.showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  cartProvider.error ??
+                                                      'Không thể cập nhật số lượng',
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            _clearQtyError(item.id);
+                                            _syncControllerValue(
+                                              item.id,
+                                              item.quantity - 1,
+                                            );
+                                          }
+                                        },
+                                      ),
+                                      const SizedBox(width: 10),
+                                      SizedBox(
+                                        width: 64,
+                                        child: TextField(
+                                          controller: qtyController,
+                                          textAlign: TextAlign.center,
+                                          keyboardType: TextInputType.number,
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter
+                                                .digitsOnly,
+                                          ],
+                                          decoration: InputDecoration(
+                                            isDense: true,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  vertical: 10,
+                                                  horizontal: 8,
+                                                ),
+                                            errorText: qtyError,
+                                          ),
+                                          onChanged: (value) {
+                                            final qty = _parseQuantity(value);
+
+                                            if (qty == null || qty <= 0) {
+                                              _setQtyError(
+                                                item.id,
+                                                'Vui lòng nhập số lượng hợp lệ.',
+                                              );
+                                              return;
+                                            }
+
+                                            if (qty > stock) {
+                                              _setQtyError(
+                                                item.id,
+                                                _stockWarningText(
+                                                  productName,
+                                                  stock,
+                                                ),
+                                              );
+                                              return;
+                                            }
+
+                                            _clearQtyError(item.id);
+                                          },
+                                          onSubmitted: (value) async {
+                                            final messenger =
+                                                ScaffoldMessenger.of(context);
+                                            final qty = _parseQuantity(value);
+                                            if (qty == null || qty <= 0) {
+                                              _setQtyError(
+                                                item.id,
+                                                'Vui lòng nhập số lượng hợp lệ.',
+                                              );
+                                              return;
+                                            }
+                                            if (qty > stock) {
+                                              _setQtyError(
+                                                item.id,
+                                                _stockWarningText(
+                                                  productName,
+                                                  stock,
+                                                ),
+                                              );
+                                              return;
+                                            }
+                                            _clearQtyError(item.id);
+                                            final ok = await cartProvider
+                                                .updateItemQty(item.id, qty);
+                                            if (!ok) {
+                                              messenger.showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    cartProvider.error ??
+                                                        'Không thể cập nhật số lượng',
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                        ),
-                                        child: Text('${item.quantity}'),
-                                      ),
+                                      const SizedBox(width: 10),
                                       _QtyButton(
                                         icon: Icons.add,
-                                        onTap: () => cartProvider.updateItemQty(
-                                          item.id,
-                                          item.quantity + 1,
-                                        ),
+                                        onTap: () async {
+                                          final messenger =
+                                              ScaffoldMessenger.of(context);
+                                          final nextQty = item.quantity + 1;
+                                          if (nextQty > stock) {
+                                            final warning = _stockWarningText(
+                                              productName,
+                                              stock,
+                                            );
+                                            _setQtyError(item.id, warning);
+                                            messenger.showSnackBar(
+                                              SnackBar(
+                                                content: Text(warning),
+                                                duration: const Duration(
+                                                  seconds: 4,
+                                                ),
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                          _clearQtyError(item.id);
+                                          final ok = await cartProvider
+                                              .updateItemQty(item.id, nextQty);
+                                          if (!ok) {
+                                            messenger.showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  cartProvider.error ??
+                                                      'Không thể cập nhật số lượng',
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            _syncControllerValue(
+                                              item.id,
+                                              nextQty,
+                                            );
+                                          }
+                                        },
                                       ),
                                     ],
                                   ),
+                                  if (qtyError != null) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.errorContainer,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        qtyError,
+                                        softWrap: true,
+                                        maxLines: 4,
+                                        overflow: TextOverflow.visible,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onErrorContainer,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -144,8 +428,28 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                         const SizedBox(height: 10),
                         FilledButton.icon(
-                          onPressed: () {
-                            Navigator.of(context).push(
+                          onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final navigator = Navigator.of(context);
+                            final canProceed = await _commitPendingQuantities(
+                              cartProvider,
+                            );
+                            if (!canProceed) {
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Vui lòng sửa số lượng vượt tồn kho trước khi thanh toán.',
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+
+                            if (!mounted) {
+                              return;
+                            }
+
+                            navigator.push(
                               MaterialPageRoute(
                                 builder: (_) => const CheckoutScreen(),
                               ),

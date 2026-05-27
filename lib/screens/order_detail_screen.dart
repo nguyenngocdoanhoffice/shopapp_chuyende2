@@ -8,8 +8,9 @@ import '../ui/widgets/app_surfaces.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final int orderId;
+  final int? sequence;
 
-  const OrderDetailScreen({super.key, required this.orderId});
+  const OrderDetailScreen({super.key, required this.orderId, this.sequence});
 
   @override
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
@@ -57,17 +58,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final title = widget.sequence != null
+        ? 'Chi tiết đơn hàng #${widget.sequence} (ID ${widget.orderId})'
+        : 'Chi tiết đơn hàng ID ${widget.orderId}';
+
     return Scaffold(
-      appBar: AppBar(title: Text('Chi tiet don hang #${widget.orderId}')),
+      appBar: AppBar(title: Text(title)),
       body: _isLoading
-          ? const AppLoading(message: 'Dang tai chi tiet don hang')
+          ? const AppLoading(message: 'Đang tải chi tiết đơn hàng')
           : _error != null
           ? Center(child: Text(_error!))
           : _detail == null
           ? const AppEmptyState(
               icon: Icons.receipt_long_outlined,
-              title: 'Khong tim thay don hang',
-              subtitle: 'Don hang co the da bi xoa hoac khong ton tai.',
+              title: 'Không tìm thấy đơn hàng',
+              subtitle: 'Đơn hàng có thể đã bị xóa hoặc không tồn tại.',
             )
           : ListView(
               padding: const EdgeInsets.all(16),
@@ -77,14 +82,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Thong tin nguoi mua',
+                        'Thông tin người mua',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
-                      _line('Ho ten', _detail!.user?.fullName ?? ''),
+                      _line('Họ tên', _detail!.user?.fullName ?? ''),
                       _line('Email', _detail!.user?.email ?? ''),
-                      _line('So dien thoai', _detail!.user?.phone ?? ''),
-                      _line('Dia chi', _detail!.shippingAddress),
+                      _line('Số điện thoại', _detail!.user?.phone ?? ''),
+                      _line('Địa chỉ', _detail!.shippingAddress),
                     ],
                   ),
                 ),
@@ -94,20 +99,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Thong tin don hang',
+                        'Thông tin đơn hàng',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
-                      _line('Trang thai', _detail!.status),
-                      _line('Thanh toan', _detail!.paymentMethod),
+                      _line('Trạng thái', _detail!.status),
+                      _line('Thanh toán', _detail!.paymentMethod),
                       _line(
-                        'Thoi gian dat',
-                        _detail!.createdAt?.toLocal().toString() ?? '',
+                        'Thời gian đặt',
+                        _detail!.createdAt != null
+                            ? '${_detail!.createdAt!.toLocal()}'
+                            : '',
                       ),
-                      _line(
-                        'Tong tien',
-                        '\$${_detail!.totalAmount.toStringAsFixed(2)}',
-                      ),
+                      _line('Tổng tiền', '${_detail!.totalAmount.round()} ₫'),
                     ],
                   ),
                 ),
@@ -117,7 +121,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'San pham',
+                        'Sản phẩm',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
@@ -129,7 +133,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               Expanded(child: Text(item.productName)),
                               Text('x${item.quantity}'),
                               const SizedBox(width: 12),
-                              Text('\$${item.unitPrice.toStringAsFixed(2)}'),
+                              Text('${item.unitPrice.round()} ₫'),
                             ],
                           ),
                         ),

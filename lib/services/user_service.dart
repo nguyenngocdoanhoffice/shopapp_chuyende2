@@ -19,6 +19,24 @@ class UserService {
     return AppUser.fromMap(data);
   }
 
+  /// Resolve a list of emails to a map of email -> userId for existing users.
+  /// Missing emails are omitted from the result.
+  Future<Map<String, String>> getUserIdsByEmails(List<String> emails) async {
+    final result = <String, String>{};
+    for (final email in emails) {
+      final data = await supabase
+          .from('users')
+          .select('id,email')
+          .eq('email', email)
+          .maybeSingle();
+
+      if (data != null) {
+        result[email] = data['id'] as String;
+      }
+    }
+    return result;
+  }
+
   Future<void> updateUserRole({
     required String userId,
     required String role,

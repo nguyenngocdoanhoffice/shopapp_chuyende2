@@ -29,10 +29,27 @@ class PriceText extends StatelessWidget {
 
   const PriceText(this.value, {super.key});
 
+  String _formatVnd(double value) {
+    final rounded = value.round();
+    final digits = rounded.abs().toString();
+    final reversed = digits.split('').reversed.toList();
+    final buffer = StringBuffer();
+
+    for (var index = 0; index < reversed.length; index++) {
+      if (index > 0 && index % 3 == 0) {
+        buffer.write('.');
+      }
+      buffer.write(reversed[index]);
+    }
+
+    final formatted = buffer.toString().split('').reversed.join();
+    return '${rounded < 0 ? '-' : ''}$formatted ₫';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Text(
-      '\$${value.toStringAsFixed(2)}',
+      _formatVnd(value),
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
         color: Theme.of(context).colorScheme.primary,
         fontWeight: FontWeight.w700,

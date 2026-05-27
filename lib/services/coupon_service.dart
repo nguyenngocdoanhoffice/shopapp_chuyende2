@@ -18,6 +18,18 @@ class CouponService {
       return null;
     }
 
+    // Check applicable users if set on the coupon
+    final currentUserId = supabase.auth.currentUser?.id;
+    final allowed = (data['applicable_user_ids'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList();
+
+    if (allowed != null && allowed.isNotEmpty) {
+      if (currentUserId == null || !allowed.contains(currentUserId)) {
+        return null;
+      }
+    }
+
     return Coupon.fromMap(data);
   }
 
@@ -41,8 +53,9 @@ class CouponService {
     double? maxDiscount,
     required DateTime startAt,
     required DateTime endAt,
+    List<String>? applicableUserIds,
   }) async {
-    await supabase.from('coupons').insert({
+    final payload = <String, dynamic>{
       'code': code.toUpperCase(),
       'discount_type': discountType,
       'discount_value': discountValue,
@@ -50,7 +63,12 @@ class CouponService {
       'max_discount': maxDiscount,
       'start_at': startAt.toUtc().toIso8601String(),
       'end_at': endAt.toUtc().toIso8601String(),
-    });
+    };
+    if (applicableUserIds != null) {
+      payload['applicable_user_ids'] = applicableUserIds;
+    }
+
+    await supabase.from('coupons').insert(payload);
   }
 
   Future<void> updateCouponStatus({

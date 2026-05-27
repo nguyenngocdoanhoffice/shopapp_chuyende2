@@ -68,11 +68,11 @@ class AppStrings {
   static const String coupon = 'Mã giảm giá';
   static const String couponCode = 'Mã giảm giá';
   static const String applyCoupon = 'Áp dụng';
-  static const String couponApplied = 'Mã giảm giá đã áp dụng: -\$';
+  static const String couponApplied = 'Mã giảm giá đã áp dụng: -';
   static const String paymentMethod = 'Phương thức thanh toán';
   static const String cod = 'Thanh toán khi nhận (COD)';
   static const String bankTransfer = 'Chuyển khoản ngân hàng';
-  static const String shippingFee = 'Phí giao hàng: \$5.00';
+  static const String shippingFee = 'Phí giao hàng: 5.000 ₫';
   static const String total = 'Tổng cộng';
   static const String placeOrder = 'Đặt hàng';
   static const String orderPlacedSuccess = 'Đặt hàng thành công';
@@ -146,7 +146,7 @@ class AppStrings {
   static const String stock_ = 'Kho hàng';
   static const String failedToLoadImage = 'Không thể tải ảnh';
   static const String loadingCoupons = 'Đang tải mã giảm giá';
-  static const String totalFormat = 'Tổng: \$';
+  static const String totalFormat = 'Tổng: ';
   static const String paymentLabel = 'Thanh toán';
   static const String shippingLabel = 'Giao hàng';
 }

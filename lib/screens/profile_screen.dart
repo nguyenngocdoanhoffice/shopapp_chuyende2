@@ -144,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
               icon: const Icon(Icons.lock_reset_outlined),
-              label: const Text('Doi mat khau'),
+              label: const Text('Đổi mật khẩu'),
             ),
           ],
         ),
